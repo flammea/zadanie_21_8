@@ -1,149 +1,168 @@
-const mongoose = require('mongoose'),
-  Schema = mongoose.Schema,
-  PORT = process.env.PORT || 5000,
-  express = require('express'),
-  app = express();
-
-app.get('/', (req, res) => res.send('Hello World!'));
-
-app.listen(PORT, () => console.log('Example app listening on port 3000!'));
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const express = require('express');
+const app = express();
 
 mongoose.Promise = global.Promise;
-mongoose.connect(
-  'mongodb://firstuser:firstpassword1@ds147390.mlab.com:47390/database_v1234',
-  {
-    useMongoClient: true
-  }
-);
+mongoose.connect('mongodb://firstuser:<firstpassword1>@ds147390.mlab.com:47390/database_v1234', {
 
-const userSchema = new Schema({
-  name: String,
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  admin: Boolean,
-  created_at: Date,
-  updated_at: Date
+    useMongoClient: true
 });
 
-userSchema.methods.manify = function(next) {
-  this.name = this.name + '-boy';
-  return next(null, this.name);
+//new user Schema
+const userSchema = new Schema({
+    name: String,
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    admin: Boolean,
+    created_at: Date,
+    updated_at: Date
+});
+
+//Mongoose schema method
+userSchema.methods.manify = function (next) {
+    this.name = this.name + '-boy';
+
+    return next(null, this.name);
 };
 
-userSchema.pre('save', function(next) {
-  const currentDate = new Date();
-  this.updated_at = currentDate;
-  if (!this.created_at) this.created_at = currentDate;
-  next();
+//pre-save method
+userSchema.pre('save', function (next) {
+    //pobranie aktualnego czasu
+    const currentDate = new Date();
+
+    //zmiana pola na aktualny czas
+    this.updated_at = currentDate;
+
+    if (!this.created_at)
+        this.created_at = currentDate;
+
+    next();
 });
 
-const User = mongoose.model('User', userSchema),
-  kenny = new User({
+//model based on userSchema
+const User = mongoose.model('User', userSchema);
+
+//instancje klasy User
+const kenny = new User({
     name: 'Kenny',
     username: 'Kenny_the_boy',
     password: 'password'
-  });
+});
 
-kenny.manify(function(err, name) {
-  if (err) throw err;
-  console.log('Twoje nowe imię to: ' + name);
+kenny.manify(function (err, name) {
+    if (err) throw err;
+    console.log('Twoje nowe imię to: ' + name);
 });
 
 const benny = new User({
-  name: 'Benny',
-  username: 'Benny_the_boy',
-  password: 'password'
+    name: 'Benny',
+    username: 'Benny_the_boy',
+    password: 'password'
 });
 
-benny.manify(function(err, name) {
-  if (err) throw err;
-  console.log('Twoje nowe imię to: ' + name);
+benny.manify(function (err, name) {
+    if (err) throw err;
+    console.log('Twoje nowe imię to: ' + name);
 });
 
 const mark = new User({
-  name: 'Mark',
-  username: 'Mark_the_boy',
-  password: 'password'
+    name: 'Mark',
+    username: 'Mark_the_boy',
+    password: 'password'
 });
 
-mark.manify(function(err, name) {
-  if (err) throw err;
-  console.log('Twoje nowe imię to: ' + name);
+mark.manify(function (err, name) {
+    if (err) throw err;
+    console.log('Twoje nowe imię to: ' + name);
 });
 
-const findAllUsers = function() {
-  return User.find({}, function(err, res) {
-    if (err) throw err;
-    console.log('Actual database records are ' + res);
-  });
-};
-
-const findSpecificRecord = function() {
-  return User.find({ username: 'Kenny_the_boy' }, function(err, res) {
-    if (err) throw err;
-    console.log('Record you are looking for is ' + res);
-  });
-};
-
-const updateUserPassword = function() {
-  return User.findOne({ username: 'Kenny_the_boy' }).then(function(user) {
-    console.log('Old password is ' + user.password);
-    console.log('Name ' + user.name);
-    user.password = 'newPassword';
-    console.log('New password is ' + user.password);
-    return user.save(function(err) {
-      if (err) throw err;
-      console.log(
-        'Uzytkownik ' + user.name + ' zostal pomyslnie zaktualizowany'
-      );
+const findAllUsers = function () {
+    // find all users
+    return User.find({}, function (err, res) {
+        if (err) throw err;
+        console.log('Actual database records are ' + res);
     });
-  });
-};
+}
 
-const updateUsername = function() {
-  return User.findOneAndUpdate(
-    { username: 'Benny_the_boy' },
-    { username: 'Benny_the_man' },
-    { new: true },
-    function(err, user) {
-      if (err) throw err;
-      console.log('Nazwa uzytkownika po aktualizacji to ' + user.username);
-    }
-  );
-};
+const findSpecificRecord = function () {
+    // find specific record
+    return User.find({ username: 'Kenny_the_boy' }, function (err, res) {
+        if (err) throw err;
+        console.log('Record you are looking for is ' + res);
+    })
+}
 
-const findMarkAndDelete = function() {
-  return User.findOne({ username: 'Mark_the_boy' }).then(function(user) {
-    return user.remove(function() {
-      console.log('User successfully deleted');
-    });
-  });
-};
+const updadeUserPassword = function () {
+    // update user password
+    return User.findOne({ username: 'Kenny_the_boy' })
+        .then(function (user) {
+            console.log('Old password is ' + user.password);
+            console.log('Name ' + user.name);
+            user.password = 'newPassword';
+            console.log('New password is ' + user.password);
+            return user.save(function (err) {
+                if (err) throw err;
 
-const findKennyAndDelete = function() {
-  return User.findOne({ username: 'Kenny_the_boy' }).then(function(user) {
-    return user.remove(function() {
-      console.log('User successfully deleted');
-    });
-  });
-};
+                console.log('Uzytkownik ' + user.name + ' zostal pomyslnie zaktualizowany');
+            })
+        })
+}
 
-const findBennyAndRemove = function() {
-  return User.findOneAndRemove({ username: 'Benny_the_man' }).then(function(
-    user
-  ) {
-    return user.remove(function() {
-      console.log('User successfully deleted');
-    });
-  });
-};
+const updateUsername = function () {
+    // update username
+    return User.findOneAndUpdate({ username: 'Benny_the_boy' }, { username: 'Benny_the_man' }, { new: true }, function (err, user) {
+        if (err) throw err;
+
+        console.log('Nazwa uzytkownika po aktualizacji to ' + user.username);
+    })
+}
+
+const findMarkAndDelete = function () {
+    // find specific user and delete
+    return User.findOne({ username: 'Mark_the_boy' })
+        .then(function (user) {
+            return user.remove(function () {
+                console.log('User successfully deleted');
+            });
+        })
+}
+
+const findKennyAndDelete = function () {
+    // find specific user and delete
+    return User.findOne({ username: 'Kenny_the_boy' })
+        .then(function (user) {
+            return user.remove(function () {
+                console.log('User successfully deleted');
+            });
+        });
+}
+
+const findBennyAndRemove = function () {
+    // find specific user and delete
+    return User.findOneAndRemove({ username: 'Benny_the_man' })
+        .then(function (user) {
+            return user.remove(function () {
+                console.log('User successfully deleted');
+            });
+        });
+}
 
 Promise.all([kenny.save(), mark.save(), benny.save()])
-  .then(findAllUsers)
-  .then(findSpecificRecord)
-  .then(updateUserPassword)
-  .then(updateUsername)
-  .then(findMarkAndDelete)
-  .then(findKennyAndDelete)
-  .then(findBennyAndRemove)
-  .catch(console.log.bind(console))
+    .then(findAllUsers)
+    .then(findSpecificRecord)
+    .then(updadeUserPassword)
+    .then(updateUsername)
+    //.then(findMarkAndDelete)
+    //.then(findKennyAndDelete)
+    //.then(findBennyAndRemove)
+    .catch(console.log.bind(console))
+
+app.set('port', (process.env.PORT || 5000));
+
+app.get('/', function (request, response) {
+    var result = 'App is running'
+    response.send(result);
+}).listen(app.get('port'), function () {
+    console.log('App is running, server is listening on port ', app.get('port'));
+});
