@@ -4,7 +4,7 @@ const express = require('express');
 const app = express();
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://firstuser:<firstpassword1>@ds147390.mlab.com:47390/database_v1234', {
+mongoose.connect('mongodb://firstuser:firstpassword1@ds147390.mlab.com:47390/database_v1234', {
 
     useMongoClient: true
 });
